@@ -315,3 +315,28 @@ def update_priority_scores(scores_mapping: Dict[str, float]) -> None:
             logger.error(f"SQLite priority update failed: {e}", exc_info=True)
         finally:
             conn.close()
+
+def clear_db() -> None:
+    """
+    Purges all reviews, categories, and sources from SQLite or Neo4j database.
+    """
+    if _neo4j_driver is not None:
+        logger.info("Purging all nodes from Neo4j database.")
+        try:
+            with _neo4j_driver.session() as session:
+                session.run("MATCH (n) DETACH DELETE n")
+            logger.info("Neo4j database purged successfully.")
+        except Exception as e:
+            logger.error(f"Failed to purge Neo4j database: {e}")
+    else:
+        logger.info("Purging all rows from SQLite reviews table.")
+        conn = get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM reviews")
+            conn.commit()
+            logger.info("SQLite database reviews table purged successfully.")
+        except Exception as e:
+            logger.error(f"Failed to purge SQLite database: {e}")
+        finally:
+            conn.close()

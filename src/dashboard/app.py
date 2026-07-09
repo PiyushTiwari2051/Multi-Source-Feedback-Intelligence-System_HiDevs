@@ -389,6 +389,11 @@ with col_prio:
 
 with col_ingest:
     st.markdown("### Data Ingestion Control")
+    if st.button("🗑️ Clear Existing Data", use_container_width=True):
+        from src.storage.db import clear_db
+        clear_db()
+        st.success("Database cleared successfully! Scraping will now start fresh.")
+        st.rerun()
     tab_play, tab_apple, tab_csv = st.tabs(["🤖 Google Play Scraper", "🍏 App Store Scraper", "📁 CSV Importer"])
     
     with tab_play:
