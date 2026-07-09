@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  feedback-intelligence:
+    build: .
+    container_name: feedback_intelligence_app
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./data:/app/data
+    env_file:
+      - .env
+    restart: unless-stopped
