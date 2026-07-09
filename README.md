@@ -2,15 +2,7 @@
 
 <div align="center">
 
-```
-   ██████╗██╗  ██╗ █████╗ ████████╗██╗     ██╗████████╗███████╗
-  ██╔════╝██║  ██║██╔══██╗╚══██╔══╝██║     ██║╚══██╔══╝██╔════╝
-  ██║     ███████║███████║   ██║   ██║     ██║   ██║   █████╗  
-  ██║     ██╔══██║██╔══██║   ██║   ██║     ██║   ██║   ██╔══╝  
-  ╚██████╗██║  ██║██║  ██║   ██║   ███████╗██║   ██║   ███████╗
-   ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝   ╚═╝   ╚══════╝
-                     [Graph Engine v2.0]
-```
+![Feedback Intelligence System Banner](banner.png)
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io)
@@ -25,6 +17,21 @@
 ## 📖 Project Overview
 
 The **Feedback Intelligence System** is a next-generation analytics engine that harvests online reviews, processes them through an offline sentiment classifier and categorization parser, and persists them into a local SQL or live **Neo4j Graph Database**. It generates stakeholder-ready weekly analytics reports in PDF format and presents real-time trends in an interactive dashboard.
+
+---
+
+## ☁️ Deployment
+
+Streamlit is a stateful Python framework that requires a persistent socket server process. Serverless hosting platforms like **Vercel** are designed for static sites and short-lived execution limits (which terminate background socket connections).
+
+To host this application online, use **Streamlit Community Cloud** (which is the official, free hosting platform for Streamlit apps, linking directly from GitHub in 1 click):
+
+[![Deploy to Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/deploy?repository=PiyushTiwari2051/Feedback-Intelligence-System&branch=main&mainModule=src/dashboard/app.py)
+
+### 3-Step Public Deployment Guide:
+1. Click the **Deploy to Streamlit** badge above.
+2. Sign in with GitHub, select your repository name, and set the Main file path to: `src/dashboard/app.py`.
+3. In the Advanced Settings panel, paste your environment configurations (e.g. `GROQ_API_KEY`, `NEO4J_URI`, etc.) and click **Deploy**. Your dashboard goes live instantly!
 
 ---
 
