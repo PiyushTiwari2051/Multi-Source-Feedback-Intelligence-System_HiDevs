@@ -174,9 +174,14 @@ st.markdown("""
 all_reviews_for_bounds = get_filtered_reviews()
 if all_reviews_for_bounds:
     df_bounds = pd.DataFrame(all_reviews_for_bounds)
-    df_bounds['date_parsed'] = pd.to_datetime(df_bounds['date'])
-    min_date = df_bounds['date_parsed'].min().date()
-    max_date = df_bounds['date_parsed'].max().date()
+    df_bounds['date_parsed'] = pd.to_datetime(df_bounds['date'], format='ISO8601', errors='coerce')
+    df_bounds = df_bounds.dropna(subset=['date_parsed'])
+    if not df_bounds.empty:
+        min_date = df_bounds['date_parsed'].min().date()
+        max_date = df_bounds['date_parsed'].max().date()
+    else:
+        min_date = datetime.now().date() - timedelta(days=30)
+        max_date = datetime.now().date()
 else:
     min_date = datetime.now().date() - timedelta(days=30)
     max_date = datetime.now().date()
