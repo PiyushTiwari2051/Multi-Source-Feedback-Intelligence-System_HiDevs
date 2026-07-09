@@ -48,6 +48,33 @@ In **Neo4j Graph Mode**, feedback data is mapped as nodes and relationships:
 
 ---
 
+## 📊 Dashboard Visuals
+
+Below is what the live, responsive Streamlit dashboard looks like when running on your local machine:
+
+### 1. Metrics & Analytical Visualization Charts
+Displays the summary cards, the date/platform filters, the real-time sentiment timeline chart, and the issue category distribution graph.
+![Dashboard Interface - Upper Analytics](dashboard_screenshot_1.png)
+
+### 2. Priority matrix & Ingestion Control Panel
+Displays the dynamic severity priority lists, the scraping controls (Google Play, App Store, CSV), and the scrollable recent customer reviews table.
+![Dashboard Interface - Lower Controls](dashboard_screenshot_2.png)
+
+---
+
+## 🔑 API & Credentials Setup
+
+The system integrates AI-assisted categorization using the **Groq Cloud API** (running Llama 3 8B model).
+
+### Setting Up Groq LLM Fallback (Llama 3)
+1. Go to **[Groq Developer Console](https://console.groq.com/)** and create a free account.
+2. Navigate to **API Keys** and generate a new key.
+3. Open your `.env` file in the project root and paste the key:
+   ```env
+   GROQ_API_KEY=gsk_your_groq_api_key_here
+   ```
+4. **Behavior**: If a review doesn't match any keyword rules, the system queries Groq to classify it. If `GROQ_API_KEY` is left blank, the app runs offline and defaults the category to `"Other"`.
+
 ## Database Configuration
 
 The storage backend toggles dynamically depending on your environment file configuration:
