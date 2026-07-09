@@ -1,140 +1,98 @@
-# 📊 Multi-Source Feedback Intelligence System
+# Feedback Intelligence System
 
-<div align="center">
+The Feedback Intelligence System is a modular Python application designed to collect, clean, categorize, and prioritize customer reviews from Google Play Store, Apple App Store RSS feeds, and CSV uploads. 
 
-![Feedback Intelligence System Banner](banner.png)
-
-[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://feedback-intelligence-system.streamlit.app)
-[![Neo4j Graph](https://img.shields.io/badge/Neo4j-Graph_DB-008CC1?style=for-the-badge&logo=neo4j&logoColor=white)](https://neo4j.com)
-[![Docker](https://img.shields.io/badge/Docker-20.10%2B-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com)
-[![License](https://img.shields.io/badge/License-MIT-success?style=for-the-badge)](https://opensource.org/licenses/MIT)
-
-</div>
+The application utilizes offline NLTK VADER sentiment analysis, keyword rules, and an optional LLM-fallback classifier to route and analyze reviews. Stored feedback can be dynamically queried on an interactive Streamlit dashboard or exported as a PDF report.
 
 ---
 
-## 📖 Project Overview
+## Key Features
 
-The **Feedback Intelligence System** is a next-generation analytics engine that harvests online reviews, processes them through an offline sentiment classifier and categorization parser, and persists them into a local SQL or live **Neo4j Graph Database**. It generates stakeholder-ready weekly analytics reports in PDF format and presents real-time trends in an interactive dashboard.
-
----
-
-## ☁️ Deployment
-
-Streamlit is a stateful Python framework that requires a persistent socket server process. Serverless hosting platforms like **Vercel** are designed for static sites and short-lived execution limits (which terminate background socket connections).
-
-To host this application online, use **Streamlit Community Cloud** (which is the official, free hosting platform for Streamlit apps, linking directly from GitHub in 1 click):
-
-[![Deploy to Streamlit](https://feedback-intelligence-system.streamlit.app)
-
-### 3-Step Public Deployment Guide:
-1. Click the **Deploy to Streamlit** badge above.
-2. Sign in with GitHub, select your repository name, and set the Main file path to: `src/dashboard/app.py`.
-3. In the Advanced Settings panel, paste your environment configurations (e.g. `GROQ_API_KEY`, `NEO4J_URI`, etc.) and click **Deploy**. Your dashboard goes live instantly!
+*   **Multi-Channel Ingestion**: Live review scraping for Google Play Store and iOS App Store, plus custom CSV uploading.
+*   **Rule-Based & AI Processing**: Fast keyword-based categorization with automatic fallback to Groq Llama 3 for ambiguous reviews.
+*   **Graph & Relational Storage**: Dual-database support. Connects to a cloud/local Neo4j Graph database, or defaults to a local SQLite file out-of-the-box.
+*   **Dynamic Prioritization**: Ranks issue categories based on the product formula: `Frequency × Average Negativity`. Crash issues auto-escalate to High priority.
+*   **Automated PDF Reporting**: Generates summaries, metrics tables, and distribution charts to export for stakeholders.
 
 ---
 
-## ⚡ Live Terminal Pipeline Mockup
-Here is what the real-time ingestion log output looks like when you trigger the Play Store scraper:
-
-```bash
-[SYSTEM] Starting Ingestion Cycle for App ID: com.whatsapp
-[INGEST] Fetched 50 raw reviews from Google Play Store.
-[PIPE]   cleaner.py ──► Strip HTML: Done (50/50)
-[PIPE]   sentiment.py ──► VADER Polarity: Positive (32), Neutral (12), Negative (6)
-[PIPE]   categorizer.py ──► Keyword Rules: Bug (22), Crash (8), Support (6), Pricing (4), Other (10)
-[DB]     db.py ──► Connected to Neo4j Graph DB on bolt://host.docker.internal:7687
-[DB]     db.py ──► Created Graph Nodes and [:FROM_SOURCE] + [:HAS_CATEGORY] relationships.
-[PRIO]   priority.py ──► Recalculated weights. Crash category escalated to 🔥 HIGH Priority.
-[SYSTEM] Ingestion Cycle Complete. Dashboard refreshed.
-```
-
----
-
-## 🗺️ Graph Modeling Architecture
-
-When **Neo4j Graph Database Mode** is active, reviews are modeled as interconnected graph nodes. This allows you to trace correlations between issues, platforms, and category clusters:
+## System Architecture
 
 ```
-                      (s:Source {name: "google_play"})
-                                     ▲
-                                     │ [:FROM_SOURCE]
-                                     │
-                             (r:Review {id})
-                                     │
-                                     │ [:HAS_CATEGORY]
-                                     ▼
-                      (c:Category {name: "Crash"})
+[Google Play]     [App Store RSS]     [CSV Upload]
+      │                  │                 │
+      └──────────────────┼─────────────────┘
+                         ▼
+             [Ingestion & Normalization]
+                         │
+                         ▼
+             [Text Cleaning (cleaner.py)]
+                         │
+                         ▼
+             [Sentiment Analysis (VADER)]
+                         │
+                         ▼
+             [Categorization (Rules/LLM)]
+                         │
+            ┌────────────┴────────────┐
+            ▼                         ▼
+      [SQLite DB]                [Neo4j Graph]
+      (Local Mode)               (Cloud Mode)
 ```
 
-<details>
-<summary><b>🔍 Click here to view the Cypher Insertion Query</b></summary>
+In **Neo4j Graph Mode**, feedback data is mapped as nodes and relationships:
+*   `(:Review)` nodes contain text, rating, dates, and sentiment labels.
+*   `(:Source)` nodes represent the origin of the review.
+*   `(:Category)` nodes represent the issue classification.
+*   Relationships: `(:Review)-[:FROM_SOURCE]->(:Source)` and `(:Review)-[:HAS_CATEGORY]->(:Category)`.
 
+---
+
+## Database Configuration
+
+The storage backend toggles dynamically depending on your environment file configuration:
+
+### 1. SQLite Relational Mode (Default)
+If no graph database credentials are found in your `.env` file, the application defaults to local Relational Mode and initializes `data/feedback.db`.
+
+### 2. Neo4j Graph Mode
+To write directly to your Neo4j instance, define the following variables in your `.env` file:
+```env
+NEO4J_URI=bolt://host.docker.internal:7687
+NEO4J_USERNAME=neo4j
+NEO4J_PASSWORD=your_neo4j_password
+```
+*(If running Streamlit via Docker, use `host.docker.internal` as the URI host to resolve ports on your host computer).*
+
+Before running, execute these constraints in your Neo4j Browser (`http://localhost:7474`) to optimize query speeds:
 ```cypher
-UNWIND $batch AS row
-MERGE (s:Source {name: row.source})
-MERGE (c:Category {name: row.category})
-MERGE (r:Review {id: row.id})
-SET r.text = row.text,
-    r.rating = row.rating,
-    r.date = row.date,
-    r.sentiment_label = row.sentiment_label,
-    r.sentiment_score = row.sentiment_score,
-    r.priority_score = row.priority_score
-MERGE (r)-[:FROM_SOURCE]->(s)
-MERGE (r)-[:HAS_CATEGORY]->(c)
+CREATE CONSTRAINT review_id IF NOT EXISTS FOR (r:Review) REQUIRE r.id IS UNIQUE;
+CREATE CONSTRAINT source_name IF NOT EXISTS FOR (s:Source) REQUIRE s.name IS UNIQUE;
+CREATE CONSTRAINT category_name IF NOT EXISTS FOR (c:Category) REQUIRE c.name IS UNIQUE;
 ```
-</details>
 
 ---
 
-## ⚙️ Database Storage Toggles
-
-The application dynamically toggles storage backends based on your environment configurations:
-
-| Database Mode | Active Credentials in `.env` | Primary Use Case |
-| :--- | :--- | :--- |
-| **Local SQLite** | None (Leave blank) | Offline development, zero setup, local database file |
-| **Neo4j Graph** | `NEO4J_URI`, `NEO4J_USERNAME`, `NEO4J_PASSWORD` | Cloud/local deployment, visual graph relationships, advanced analytics |
-
-<details>
-<summary><b>🛠️ Step-by-Step Neo4j Configuration</b></summary>
-
-1. Ensure your Neo4j instance is running (e.g. your active `caios-neo4j` docker container).
-2. Open the Neo4j Browser at `http://localhost:7474`.
-3. Open your `.env` file in the project root and fill in your connection details:
-   ```env
-   NEO4J_URI=bolt://host.docker.internal:7687
-   NEO4J_USERNAME=neo4j
-   NEO4J_PASSWORD=your_neo4j_password_here
-   ```
-   *(We use `host.docker.internal` so the dashboard container can communicate with the Neo4j instance running on your host machine.)*
-4. Restart your docker containers or the streamlit server. The system will detect the config and boot up in Graph mode automatically.
-</details>
-
----
-
-## 🚀 Running the Project
+## Setup & Execution
 
 ### Method A: Docker Compose (Recommended)
-Build and run the entire application container stack in detached mode:
-```bash
-docker-compose up -d --build
-```
-Open **[http://localhost:8501](http://localhost:8501)** in your browser.
-
-*To stop the app containers, run:* `docker-compose down`
-
-### Method B: Local Python Development
-1. Navigate to the project root directory:
+1. Copy `.env.example` to `.env` and fill in your custom keys (if any).
+2. Start the container stack:
    ```bash
-   cd feedback_intelligence
+   docker-compose up -d --build
    ```
-2. Activate virtual environment:
+3. Open **[http://localhost:8501](http://localhost:8501)** in your browser.
+
+### Method B: Local Environment
+1. Create and activate a Python virtual environment:
    ```bash
-   # Windows
-   .\venv\Scripts\Activate.ps1
+   python -m venv venv
+   # Windows activation:
+   .\venv\Scripts\activate
+   ```
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
    ```
 3. Run the Streamlit server:
    ```bash
@@ -143,72 +101,24 @@ Open **[http://localhost:8501](http://localhost:8501)** in your browser.
 
 ---
 
-## 📐 Priority Scoring & Automation
+## Deployment
 
-The engine runs a mathematical algorithm to score issue categories:
+Streamlit runs a stateful WebSocket server to sync user interactions. Standard serverless hosting like Vercel terminates these long-running background connections, causing Streamlit to fail.
 
-$$\text{Priority Score} = \text{Category Frequency} \times \text{Average Negativity}$$
+To host the application online, deploy it using the official, free **Streamlit Community Cloud** linked directly to your GitHub repository:
 
-*   **Average Negativity**: Calculated as the absolute VADER compound score for negative reviews. Positive/Neutral reviews contribute `0.0`.
+[![Deploy to Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/deploy?repository=PiyushTiwari2051/Feedback-Intelligence-System&branch=main&mainModule=src/dashboard/app.py)
 
-### 🚨 Automation Escalation Rules
-*   **Zero-Tolerance Crashes**: Any category classified as `Crash` containing $\ge 1$ negative review is auto-escalated to 🔥 **HIGH Priority**.
-*   **Bug Thresholds**: `Bug` categories with a priority score $\ge 1.5$ are auto-escalated to 🔥 **HIGH Priority**.
-*   **Volume Thresholds**: Any category with a score $\ge 3.0$ is escalated to 🔥 **HIGH Priority**.
+1. Click the badge above to open the deploy interface.
+2. Set the repository to: `PiyushTiwari2051/Feedback-Intelligence-System`.
+3. Set the Main file path to: `src/dashboard/app.py`.
+4. Add your environment variables (like `GROQ_API_KEY`, `NEO4J_URI`, etc.) in the Advanced Settings panel.
+5. Click **Deploy**.
 
 ---
 
-## 🧪 Running Unit Tests
-
-We have written 19 logic unit tests covering all text cleaning, sentiment calculations, and priority scoring functions. To execute the tests, run:
-
+## Running Unit Tests
+To run the automated pytest suite:
 ```bash
-.\venv\Scripts\Activate.ps1
 pytest tests/
-```
-
-Expected Output:
-```text
-tests\test_categorizer.py ......                                         [ 31%]
-tests\test_cleaner.py .....                                              [ 57%]
-tests\test_priority.py ....                                              [ 78%]
-tests\test_sentiment.py ....                                             [100%]
-
-============================= 19 passed in 0.46s ==============================
-```
-
----
-
-## 📂 Directory Layout
-
-```
-feedback_intelligence/
-├── src/
-│   ├── ingestion/          # Play Store & App Store RSS Harvesters
-│   │   ├── google_play.py
-│   │   ├── app_store.py
-│   │   └── csv_loader.py
-│   ├── processing/         # Cleaning & classification
-│   │   ├── cleaner.py
-│   │   ├── sentiment.py
-│   │   └── categorizer.py
-│   ├── intelligence/       # Trends & Priority Matrix
-│   │   ├── trend.py
-│   │   └── priority.py
-│   ├── storage/            # SQLite & Neo4j Toggle Engine
-│   │   └── db.py
-│   ├── reporting/          # Stakeholder Report Generator (PDF)
-│   │   └── pdf_report.py
-│   └── dashboard/          # Streamlit UI App
-│       └── app.py
-├── tests/                 # Unit tests
-│   ├── test_cleaner.py
-│   ├── test_sentiment.py
-│   ├── test_categorizer.py
-│   └── test_priority.py
-├── data/                  # Local SQLite storage directory
-├── Dockerfile             # Container configuration
-├── docker-compose.yml     # Compose file orchestrating services
-├── requirements.txt        # Pinned packages
-└── README.md              # Detailed guide
 ```
