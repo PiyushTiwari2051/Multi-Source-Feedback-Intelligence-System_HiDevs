@@ -15,7 +15,7 @@ def calculate_trends(reviews: List[Dict[str, Any]], interval: str = 'daily') -> 
     try:
         df = pd.DataFrame(reviews)
         # Parse reviews dates
-        df['date_parsed'] = pd.to_datetime(df['date'], errors='coerce')
+        df['date_parsed'] = pd.to_datetime(df['date'], format='ISO8601', errors='coerce', utc=True)
         
         # Drop rows with unparseable dates
         df = df.dropna(subset=['date_parsed'])
