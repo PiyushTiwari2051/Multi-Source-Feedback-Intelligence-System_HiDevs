@@ -5,7 +5,7 @@
 ![Feedback Intelligence System Banner](banner.png)
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io)
+[![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://feedback-intelligence-system.streamlit.app)
 [![Neo4j Graph](https://img.shields.io/badge/Neo4j-Graph_DB-008CC1?style=for-the-badge&logo=neo4j&logoColor=white)](https://neo4j.com)
 [![Docker](https://img.shields.io/badge/Docker-20.10%2B-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com)
 [![License](https://img.shields.io/badge/License-MIT-success?style=for-the-badge)](https://opensource.org/licenses/MIT)
@@ -26,7 +26,7 @@ Streamlit is a stateful Python framework that requires a persistent socket serve
 
 To host this application online, use **Streamlit Community Cloud** (which is the official, free hosting platform for Streamlit apps, linking directly from GitHub in 1 click):
 
-[![Deploy to Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/deploy?repository=PiyushTiwari2051/Feedback-Intelligence-System&branch=main&mainModule=src/dashboard/app.py)
+[![Deploy to Streamlit](https://feedback-intelligence-system.streamlit.app)
 
 ### 3-Step Public Deployment Guide:
 1. Click the **Deploy to Streamlit** badge above.
