@@ -464,24 +464,37 @@ if total_count > 0:
     df_display['Rating'] = df_display['Rating'].apply(lambda x: f"{int(x)}★" if pd.notna(x) else "N/A")
     df_display['Sentiment'] = df_display['Sentiment'].apply(lambda x: str(x).title())
     
-    # Render reviews as styled cards in a scrollable container
-    cards_html = ""
+    # Render reviews as a styled HTML table with column wrapping
+    table_rows = ""
     for idx, row in df_display.iterrows():
         sentiment_color = "#10B981" if row['Sentiment'] == "Positive" else "#EF4444" if row['Sentiment'] == "Negative" else "#64748B"
-        cards_html += f"""
-        <div style="background-color: #ffffff; border-left: 5px solid {sentiment_color}; border-radius: 4px; padding: 12px; margin-bottom: 10px; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); text-align: left;">
-            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #64748b; margin-bottom: 6px;">
-                <span>📅 {row['Date']} | 🔌 {row['Source']} | 🏷️ {row['Category']}</span>
-                <span>⭐ {row['Rating']} | <strong style="color: {sentiment_color};">{row['Sentiment']}</strong></span>
-            </div>
-            <p style="margin: 0; font-size: 0.9rem; color: #0f172a; line-height: 1.4; word-wrap: break-word; text-align: left;">{row['Text']}</p>
-        </div>
-        """
-        
-    st.markdown(f"""
-    <div style="max-height: 450px; overflow-y: auto; padding-right: 8px;">
-        {cards_html}
-    </div>
-    """, unsafe_allow_html=True)
+        table_rows += f"""<tr style="border-bottom: 1px solid #e2e8f0; color: #0f172a;">
+<td style="padding: 10px; vertical-align: top; white-space: nowrap; font-size: 0.8rem;">{row['Date']}</td>
+<td style="padding: 10px; vertical-align: top; white-space: nowrap; font-size: 0.8rem;">{row['Source']}</td>
+<td style="padding: 10px; vertical-align: top; white-space: nowrap; font-size: 0.8rem;">{row['Category']}</td>
+<td style="padding: 10px; vertical-align: top; white-space: nowrap; font-size: 0.8rem;">{row['Rating']}</td>
+<td style="padding: 10px; vertical-align: top; font-weight: bold; color: {sentiment_color}; white-space: nowrap; font-size: 0.8rem;">{row['Sentiment']}</td>
+<td style="padding: 10px; vertical-align: top; word-break: break-word; line-height: 1.4; text-align: left; font-size: 0.85rem;">{row['Text']}</td>
+</tr>"""
+
+    html_table = f"""<div style="max-height: 450px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 4px; background-color: #ffffff;">
+<table style="width: 100%; border-collapse: collapse; text-align: left; font-family: sans-serif;">
+<thead>
+<tr style="border-bottom: 2px solid #cbd5e1; background-color: #f8fafc; color: #475569; font-size: 0.8rem;">
+<th style="padding: 10px; width: 15%;">Date</th>
+<th style="padding: 10px; width: 12%;">Source</th>
+<th style="padding: 10px; width: 12%;">Category</th>
+<th style="padding: 10px; width: 10%;">Rating</th>
+<th style="padding: 10px; width: 12%;">Sentiment</th>
+<th style="padding: 10px; width: 39%; text-align: left;">Text</th>
+</tr>
+</thead>
+<tbody>
+{table_rows}
+</tbody>
+</table>
+</div>"""
+
+    st.write(html_table, unsafe_allow_html=True)
 else:
     st.info("No reviews match the selected filters or database is empty.")
