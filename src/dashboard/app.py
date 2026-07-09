@@ -188,11 +188,15 @@ with col_f3:
 # Parse date filter bounds
 start_dt = None
 end_dt = None
+min_date = default_start
+max_date = default_end
 if isinstance(date_range, list) or isinstance(date_range, tuple):
     if len(date_range) >= 1:
-        start_dt = datetime.combine(date_range[0], datetime.min.time()).isoformat()
+        min_date = date_range[0]
+        start_dt = datetime.combine(min_date, datetime.min.time()).isoformat()
     if len(date_range) == 2:
-        end_dt = datetime.combine(date_range[1], datetime.max.time()).isoformat()
+        max_date = date_range[1]
+        end_dt = datetime.combine(max_date, datetime.max.time()).isoformat()
 
 # Fetch filtered reviews
 filtered_reviews = get_filtered_reviews(
