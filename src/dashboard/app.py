@@ -464,6 +464,24 @@ if total_count > 0:
     df_display['Rating'] = df_display['Rating'].apply(lambda x: f"{int(x)}★" if pd.notna(x) else "N/A")
     df_display['Sentiment'] = df_display['Sentiment'].apply(lambda x: str(x).title())
     
-    st.dataframe(df_display, use_container_width=True, height=300)
+    # Render reviews as styled cards in a scrollable container
+    cards_html = ""
+    for idx, row in df_display.iterrows():
+        sentiment_color = "#10B981" if row['Sentiment'] == "Positive" else "#EF4444" if row['Sentiment'] == "Negative" else "#64748B"
+        cards_html += f"""
+        <div style="background-color: #ffffff; border-left: 5px solid {sentiment_color}; border-radius: 4px; padding: 12px; margin-bottom: 10px; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); text-align: left;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #64748b; margin-bottom: 6px;">
+                <span>📅 {row['Date']} | 🔌 {row['Source']} | 🏷️ {row['Category']}</span>
+                <span>⭐ {row['Rating']} | <strong style="color: {sentiment_color};">{row['Sentiment']}</strong></span>
+            </div>
+            <p style="margin: 0; font-size: 0.9rem; color: #0f172a; line-height: 1.4; word-wrap: break-word; text-align: left;">{row['Text']}</p>
+        </div>
+        """
+        
+    st.markdown(f"""
+    <div style="max-height: 450px; overflow-y: auto; padding-right: 8px;">
+        {cards_html}
+    </div>
+    """, unsafe_allow_html=True)
 else:
     st.info("No reviews match the selected filters or database is empty.")
