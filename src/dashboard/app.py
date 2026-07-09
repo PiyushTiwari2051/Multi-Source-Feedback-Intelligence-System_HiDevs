@@ -172,24 +172,14 @@ st.markdown("""
 
 # Fetch all available data first to populate filter bounds
 all_reviews_for_bounds = get_filtered_reviews()
-if all_reviews_for_bounds:
-    df_bounds = pd.DataFrame(all_reviews_for_bounds)
-    df_bounds['date_parsed'] = pd.to_datetime(df_bounds['date'], format='ISO8601', errors='coerce', utc=True)
-    df_bounds = df_bounds.dropna(subset=['date_parsed'])
-    if not df_bounds.empty:
-        min_date = df_bounds['date_parsed'].min().date()
-        max_date = df_bounds['date_parsed'].max().date()
-    else:
-        min_date = datetime.now().date() - timedelta(days=30)
-        max_date = datetime.now().date()
-else:
-    min_date = datetime.now().date() - timedelta(days=30)
-    max_date = datetime.now().date()
+default_days = int(os.getenv("DEFAULT_DATE_RANGE_DAYS", "30"))
+default_start = datetime.now().date() - timedelta(days=default_days)
+default_end = datetime.now().date()
 
 # --- FILTER SECTION ---
 col_f1, col_f2, col_f3 = st.columns(3)
 with col_f1:
-    date_range = st.date_input("Date Range", [min_date, max_date])
+    date_range = st.date_input("Date Range", [default_start, default_end])
 with col_f2:
     source_filter = st.selectbox("Source", ["All", "google_play", "app_store", "csv"])
 with col_f3:
